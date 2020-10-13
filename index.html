@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>North Carolina One Stop Voting Sites(2020)</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.0/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css">
+  <style>
+    html, body, #map { width: 100%; height: 100%; margin: 0; background: #fff; }
+   .legend {
+      line-height: 40px;
+      font-family: 'Faustina', serif;
+      font-size: 16px;
+      width: 300px;
+      color: #333333;
+      padding: 6px 8px;
+      background: white;
+      background: rgba(255,255,255,0.5);
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      border-radius: 5px;
+    }
+    .legend i {
+      width: 20px;
+      height: 20px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.9;
+    }
+    .legend img {
+      width: 16px;
+      height: 16px;
+      margin-right: 3px;
+      float: left;
+    }
+    .legend p {
+      font-size: 14px;
+      line-height: 20px;
+      margin: 0;
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Faustina" rel=stylesheet>
+<script src="https://unpkg.com/leaflet@1.7.0/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/1.3.4/chroma.min.js"></script>
+</head>
+<body>
+  <div id="map"></div>
+<script>
+    var mymap = L.map('map', {
+        center: [35.3565,-79.9977], //Move up a little
+        zoom: 7,
+        maxZoom: 14,
+        minZoom: 7,
+        detectRetina: true
+    });
+
+  L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png').addTo(mymap); //**Try Changing
+
+  var one_stop_voting = null;
+
+  var colors = chroma.scale('Blues').mode('lch').colors(0);
+
+  for (i = 0; i < 3; i++) {
+    $('head').append($("<style> .marker-color-" + (i + 1).toString() + " {color: " + colors[i] + "; font-size: 20px; text-shadow: 0 0 1px #ffffff;} </style>}"));
+  }
+
+  one_stop_voting = L.geoJson.ajax("assets/4326P_One_Stop.geojson",{
+
+    onEachFeature: function (feature, layer) {
+      layer.bindPopup(feature.properties.Place_addr);
+    },
+
+    pointToLayer: function(feature, latlng) {
+      var id = 0;
+      if (feature.properties.property_t == "World") {id = 0; }
+      return L.marker(latlng, {icon: L.divIcon({
+                                className: 'fas fa-info markers-color-' + (id + 0).toString() })});
+    },
+      attribution: 'One Stop Voting Sites &copy; NC OneMap | Population Living Below The Poverty Line &copy; US Census Bureau | Base Map &copy; CartoDB | Map Author: Karyn Reid '
+  }).addTo(mymap);
+
+  colors = chroma.scale('YlOrRd').colors(5);
+//Equal interval (0.05)
+function setColor(density) {
+  var id = 0;
+  if (density > 0.28) { id = 5; } // highest density
+  else if (density > 0.23 && density <= 0.28) {id = 4; }
+  else if (density > 0.18 && density <= 0.23) {id = 3; }
+  else if (density > 0.13 && density <= 0.18) { id = 2; }
+  else if (density > 0.08 && density <= 0.13) {id = 1; }
+  else { id = 0; } // lowest density
+  return colors[id];
+  }
+
+  function style(feature) {
+    return {
+      fillColor: setColor(feature.properties.Density),
+      fillOpacity: 0.3,
+      weight: 2,
+      opacity: 1,
+      color: '#b4b4b4',
+      dashArray: '4'
+    };
+  }
+  L.geoJson.ajax("assets/4326Poly_BelPov.geojson", {
+    style: style
+  }).addTo(mymap);
+
+  var legend = L.control({position: 'bottomleft'});
+  legend.onAdd = function() {
+    var div = L.DomUtil.create('div', 'legend');
+
+    div.innerHTML += '<b>Population living below the poverty line</b><br />';
+    div.innerHTML += '<i style="background: ' + colors[4] + '; opacity: 0.5"></i><p>>28%</p>';
+    div.innerHTML += '<i style="background: ' + colors[3] + '; opacity: 0.5"></i><p>23%-28%</p>';
+           div.innerHTML += '<i style="background: ' + colors[2] + '; opacity: 0.5"></i><p>18%-22%</p>';
+           div.innerHTML += '<i style="background: ' + colors[1] + '; opacity: 0.5"></i><p>13%-17%</p>';
+           div.innerHTML += '<i style="background: ' + colors[0] + '; opacity: 0.5"></i><p><12%</p>';
+
+    div.innerHTML += '<hr><b>Voting Sites<b><br />';
+    div.innerHTML += '<i class="fas fa-info"></i><p>One Stop</p>';
+    return div;
+  };
+  legend.addTo(mymap);
+
+  L.control.scale({position: 'bottomright'}).addTo(mymap);
+  </script>
+  </body>
+  </html>
