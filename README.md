@@ -1,5 +1,5 @@
 # Poverty_and_Voting
-One Stop Early Voting Sities in NC counties with high rates of poverty
+[One Stop Early Voting Sities in NC counties with high rates of poverty](https://reidka2909.github.io/Poverty_and_Voting/)
 ## Intro
 This map explores the accessability of 2020 One Stop Voting Sites in North Carolina to a vulnerable population of people living below the poverty line.
 <br>
